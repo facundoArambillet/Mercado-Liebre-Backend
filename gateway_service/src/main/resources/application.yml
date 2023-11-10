@@ -1,0 +1,113 @@
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      default-zone: http://localhost:8761/eureka
+  instance:
+    hostname: localhost
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders:
+              - "Origin"
+              - "Content-Type"
+              - "Accept"
+              - "Authorization"
+              - "User-Key"
+              - "Request-Tracker"
+              - "Session-Tracker"
+              - "X-XSRF-TOKEN"
+              - "X-IBM-CLIENT-ID"
+              - "Message-ID"
+              - "X-IBM-CLIENT-SECRET"
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/rol-attribute/**
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-rol/**
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-address/**
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**
+#          filters:
+#            - name: Cors
+#              args:
+#                allowedOrigins: "http://localhost:4200"  # Orígenes permitidos
+#                allowedMethods: "GET,POST,PUT,DELETE"  # Métodos permitidos
+#                allowedHeaders: "*"  # Cabeceras permitidas
+#                allowCredentials: true  # Permitir credenciales (por ejemplo, cookies)
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/category-family/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/category/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/category-attribute/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/product-attribute/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/product-offer/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/product/**
+
+        - id: transaction-service
+          uri: lb://transaction-service
+          predicates:
+            - Path=/shopping-cart/**
+
+        - id: transaction-service
+          uri: lb://transaction-service
+          predicates:
+            - Path=/invoice/**
+
+        - id: transaction-service
+          uri: lb://transaction-service
+          predicates:
+            - Path=/payment-plan/**
