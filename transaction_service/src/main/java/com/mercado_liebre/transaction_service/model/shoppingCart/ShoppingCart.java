@@ -20,13 +20,13 @@ public class ShoppingCart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_cart")
     private Long idCart;
+    @Column(nullable = false)
     private double price;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "id_user")
     private User user;
-
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "shopping_cart_has_products",
             joinColumns = @JoinColumn(name = "id_cart"),

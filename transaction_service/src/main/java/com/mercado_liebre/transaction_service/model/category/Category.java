@@ -16,9 +16,10 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_category")
     private Long idCategory;
+    @Column(nullable = false)
     private String name;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="id_type")
     private CategoryFamily categoryFamily;
 }

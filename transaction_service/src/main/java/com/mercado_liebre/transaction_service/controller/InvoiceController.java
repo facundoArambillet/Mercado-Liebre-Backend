@@ -22,18 +22,22 @@ public class InvoiceController {
     public Optional<InvoiceDTO> getById(@PathVariable("idInvoice") Long idInvoice) {
         return invoiceService.getById(idInvoice);
     }
-    @GetMapping("/cart/{idCart}")
-    public List<InvoiceDTO> getInvoicesByIdCart(@PathVariable("idCart") Long idCart) {
-        return invoiceService.getInvoicesByIdCart(idCart);
+//    @GetMapping("/cart/{idCart}")
+//    public List<InvoiceDTO> getInvoicesByIdCart(@PathVariable("idCart") Long idCart) {
+//        return invoiceService.getInvoicesByIdCart(idCart);
+//    }
+    @GetMapping("/by-user/{idUser}")
+    public List<InvoiceDTO> getByIdUser(@PathVariable("idUser") Long idUser) {
+        return invoiceService.getByIdUser(idUser);
     }
     @PostMapping
     public Invoice createInvoice(@RequestBody Invoice invoice) {
         return invoiceService.createInvoice(invoice);
     }
-    @PutMapping("/{idInvoice}")
-    public InvoiceDTO updateInvoice(@PathVariable("idInvoice")Long idInvoice, @RequestBody InvoiceDTO invoiceDTO) {
-        return invoiceService.updateInvoice(idInvoice, invoiceDTO);
-    }
+//    @PutMapping("/{idInvoice}")
+//    public InvoiceDTO updateInvoice(@PathVariable("idInvoice")Long idInvoice, @RequestBody InvoiceDTO invoiceDTO) {
+//        return invoiceService.updateInvoice(idInvoice, invoiceDTO);
+//    }
     @DeleteMapping("/{idInvoice}")
     public InvoiceDTO deleteInvoice(@PathVariable("idInvoice") Long idInvoice) {
         return invoiceService.deleteInvoice(idInvoice);

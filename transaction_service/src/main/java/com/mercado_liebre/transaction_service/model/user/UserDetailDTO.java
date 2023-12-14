@@ -19,6 +19,6 @@ public class UserDetailDTO {
     private String lastName;
     private Date creationDate;
     private Long salesMade;
-    private UserRolDTO userRol;
+    private Long idRol;
     private Set<Product> products;
 }

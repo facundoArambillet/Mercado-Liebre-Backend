@@ -25,13 +25,17 @@ public class ShoppingCartController {
     public Optional<ShoppingCartDTO> getById(@PathVariable("idShoppingCart") Long idShoppingCart) {
         return shoppingCartService.getById(idShoppingCart);
     }
+    @GetMapping("/by-user/{idUser}")
+    public Optional<ShoppingCartDTO> getByIdUser(@PathVariable("idUser") Long idUser) {
+        return shoppingCartService.getByIdUser(idUser);
+    }
     @PostMapping
     public ShoppingCart createShoppingCart(@RequestBody ShoppingCart shoppingCart) {
         return shoppingCartService.createShoppingCart(shoppingCart);
     }
     @PostMapping("/insert/{idUser}")
     public ShoppingCartDTO insertProduct(@PathVariable("idUser") Long idUser, @RequestBody ProductDetailDTO productDetailDTO) {
-        return shoppingCartService.insertProduct(productDetailDTO, idUser);
+        return shoppingCartService.insertProduct(idUser, productDetailDTO);
     }
 //    @PutMapping("/{idShoppingCart}")
 //        public ShoppingCart updateShoppingCart(@PathVariable("idShoppingCart")Long idShoppingCart, @RequestBody ShoppingCart shoppingCart) {

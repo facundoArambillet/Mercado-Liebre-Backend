@@ -9,8 +9,7 @@ import java.util.Optional;
 public interface InvoiceService {
     List<InvoiceDTO> getAll();
     Optional<InvoiceDTO> getById(Long id);
-    List<InvoiceDTO> getInvoicesByIdCart(Long idShoppingCart);
     Invoice createInvoice(Invoice invoice);
-    InvoiceDTO updateInvoice(Long id, InvoiceDTO invoiceDTO);
+//    InvoiceDTO updateInvoice(Long id, InvoiceDTO invoiceDTO);
     InvoiceDTO deleteInvoice(Long id);
 }

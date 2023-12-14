@@ -5,6 +5,7 @@ import com.mercado_liebre.transaction_service.model.invoice.Invoice;
 import com.mercado_liebre.transaction_service.model.invoice.InvoiceDTO;
 import com.mercado_liebre.transaction_service.model.invoice.InvoiceMapper;
 import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCart;
+import com.mercado_liebre.transaction_service.model.user.User;
 import com.mercado_liebre.transaction_service.repository.InvoiceRepository;
 import com.mercado_liebre.transaction_service.repository.ShoppingCartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class InvoiceServiceImpl implements InvoiceService {
-    @Autowired
-    private ShoppingCartRepository shoppingCartRepository;
     @Autowired
     private InvoiceRepository invoiceRepository;
     @Autowired
@@ -54,37 +53,46 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
 
     }
-
-    public  List<InvoiceDTO> getInvoicesByIdCart(Long idShoppingCart) {
+    public List<InvoiceDTO> getByIdUser(Long idUser) {
         try {
-            Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findById(idShoppingCart);
-            if(shoppingCartFound.isPresent()) {
-                List<Invoice> invoicesFound = invoiceRepository.findInvoicesByIdCart(idShoppingCart);
-                List<InvoiceDTO> invoiceDTOS = invoicesFound.stream().map(
-                        invoice -> InvoiceMapper.mapper.invoiceToInvoiceDto(invoice)).collect(Collectors.toList());
+            List<Invoice> invoices = invoiceRepository.findByUser(idUser);
+            List<InvoiceDTO> invoiceDTOS = invoices.stream().map(
+                    invoice -> InvoiceMapper.mapper.invoiceToInvoiceDto(invoice)).collect(Collectors.toList());
 
-                return invoiceDTOS;
-            } else {
-                throw new ResponseException("Shopping cart does not exist", null, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
+            return invoiceDTOS;
         } catch (ResponseException ex) {
             throw ex;
         } catch (Exception e) {
-            throw new ResponseException("Get By Email Invoice", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseException("Error occurred while fetching Invoice", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+//    public  List<InvoiceDTO> getInvoicesByIdCart(Long idShoppingCart) {
+//        try {
+//            Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findById(idShoppingCart);
+//            if(shoppingCartFound.isPresent()) {
+//                List<Invoice> invoicesFound = invoiceRepository.findInvoicesByIdCart(idShoppingCart);
+//                List<InvoiceDTO> invoiceDTOS = invoicesFound.stream().map(
+//                        invoice -> InvoiceMapper.mapper.invoiceToInvoiceDto(invoice)).collect(Collectors.toList());
+//
+//                return invoiceDTOS;
+//            } else {
+//                throw new ResponseException("Shopping cart does not exist", null, HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
+//
+//        } catch (ResponseException ex) {
+//            throw ex;
+//        } catch (Exception e) {
+//            throw new ResponseException("Get By Email Invoice", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     public Invoice createInvoice(Invoice invoice) {
         try {
-            Long idShoppingCart = invoice.getShoppingCart().getIdCart();
-            Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findById(idShoppingCart);
-            if(shoppingCartFound.isPresent()) {
+            if(!invoice.getProducts().isEmpty()) {
                 return invoiceRepository.save(invoice);
             } else {
-                throw new ResponseException("Shopping cart does not exist", null, HttpStatus.BAD_REQUEST);
+                throw new ResponseException("The products in the invoice not be null", null, HttpStatus.BAD_REQUEST);
             }
-
         } catch (ResponseException ex) {
             throw ex;
         } catch (Exception e) {
@@ -93,34 +101,34 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     }
 
-    public InvoiceDTO updateInvoice(Long idInvoice, InvoiceDTO invoiceDTO) {
-        try {
-            Optional<Invoice> invoiceFound = invoiceRepository.findById(idInvoice);
-            if(invoiceFound.isPresent()) {
-                Long idShoppingCart = invoiceDTO.getShoppingCart().getIdCart();
-                Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findById(idShoppingCart);
-                if(shoppingCartFound.isPresent()) {
-                    Invoice invoiceUpdated = invoiceFound.get();
-                    invoiceUpdated.setTotal(invoiceDTO.getTotal());
-                    invoiceUpdated.setDate(invoiceDTO.getDate());
-                    invoiceRepository.save(invoiceUpdated);
-
-                    InvoiceDTO invoiceDTOUpdated = InvoiceMapper.mapper.invoiceToInvoiceDto(invoiceUpdated);
-                    return invoiceDTOUpdated;
-                } else {
-                    throw new ResponseException("Shopping cart does not exist", null, HttpStatus.NOT_FOUND);
-                }
-
-            } else {
-                throw new ResponseException("That Invoice does not exist ", null, HttpStatus.NOT_FOUND);
-            }
-        }  catch (ResponseException ex) {
-            throw ex;
-        }  catch (Exception e) {
-            throw new ResponseException("Update Invoice", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
+//    public InvoiceDTO updateInvoice(Long idInvoice, InvoiceDTO invoiceDTO) {
+//        try {
+//            Optional<Invoice> invoiceFound = invoiceRepository.findById(idInvoice);
+//            if(invoiceFound.isPresent()) {
+//                Long idShoppingCart = invoiceDTO.getShoppingCart().getIdCart();
+//                Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findById(idShoppingCart);
+//                if(shoppingCartFound.isPresent()) {
+//                    Invoice invoiceUpdated = invoiceFound.get();
+//                    invoiceUpdated.setTotal(invoiceDTO.getTotal());
+//                    invoiceUpdated.setDate(invoiceDTO.getDate());
+//                    invoiceRepository.save(invoiceUpdated);
+//
+//                    InvoiceDTO invoiceDTOUpdated = InvoiceMapper.mapper.invoiceToInvoiceDto(invoiceUpdated);
+//                    return invoiceDTOUpdated;
+//                } else {
+//                    throw new ResponseException("Shopping cart does not exist", null, HttpStatus.NOT_FOUND);
+//                }
+//
+//            } else {
+//                throw new ResponseException("That Invoice does not exist ", null, HttpStatus.NOT_FOUND);
+//            }
+//        }  catch (ResponseException ex) {
+//            throw ex;
+//        }  catch (Exception e) {
+//            throw new ResponseException("Update Invoice", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//
+//    }
 
     public InvoiceDTO deleteInvoice(Long idInvoice) {
         try {

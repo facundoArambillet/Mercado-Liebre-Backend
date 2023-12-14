@@ -1,11 +1,12 @@
 package com.mercado_liebre.transaction_service.model.invoice;
 
-import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCart;
+import com.mercado_liebre.transaction_service.model.product.Product;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -14,5 +15,5 @@ public class InvoiceDTO {
     private Long idInvoice;
     private double total;
     private Date date;
-    private ShoppingCart shoppingCart;
+    private List<Product> products;
 }

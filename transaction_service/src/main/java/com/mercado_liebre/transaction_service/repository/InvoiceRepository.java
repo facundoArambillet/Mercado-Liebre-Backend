@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice,Long> {
-    @Query("SELECT i FROM Invoice i WHERE i.shoppingCart.idCart = :idCart")
-    List<Invoice> findInvoicesByIdCart(@Param("idCart") Long idCart);
+    @Query("SELECT i FROM Invoice i WHERE i.user.idUser = :idUser")
+    List<Invoice> findByUser(@Param("idUser") Long idUser);
 
 }
