@@ -9,6 +9,7 @@ import java.io.IOException;
 
 //https://stackoverflow.com/questions/665406/how-to-make-a-color-transparent-in-a-bufferedimage-and-save-as-png
 public class ImageRender {
+
     public byte[] removeBackground(byte[] image) {
         try {
             BufferedImage bufferedImage = arrayByteToBufferedImage(image);

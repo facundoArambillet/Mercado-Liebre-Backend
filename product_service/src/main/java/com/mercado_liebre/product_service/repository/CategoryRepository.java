@@ -4,6 +4,7 @@ import com.mercado_liebre.product_service.model.category.Category;
 import com.mercado_liebre.product_service.model.product.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,10 +15,13 @@ public interface CategoryRepository extends JpaRepository<Category,Long> {
 
     Optional<Category> findByName(String name);
 
-    @Query("SELECT c.id_category, c.name, COUNT(p.id_product) as productCount FROM categories c " +
-            "JOIN products p ON c.id_category = p.id_category " +
-            "GROUP BY c.id_category, c.name " +
+    @Query("SELECT c.idCategory, c.name, COUNT(p.idProduct) as productCount FROM Category c " +
+            "INNER JOIN Product p ON c.idCategory = p.category.idCategory " +
+            "GROUP BY c.idCategory, c.name " +
             "ORDER BY productCount DESC " +
             "LIMIT 6")
-    List<Product> findTopCategoriesWithMostProducts();
+    List<Object[]> findTopCategoriesWithMostProducts();
+
+//    @Query("SELECT c FROM Category c WHERE c.Name = :name ORDER BY c.idCategory DESC LIMIT 4")
+//    List<Category> findLastFourCategoriesByName(@Param("name") String name);
 }

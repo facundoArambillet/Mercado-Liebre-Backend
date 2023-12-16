@@ -10,6 +10,7 @@ import com.mercado_liebre.product_service.model.productImage.ProductImageDTO;
 import com.mercado_liebre.product_service.model.productImage.ProductImageMapper;
 import com.mercado_liebre.product_service.repository.ProductImageRepository;
 import com.mercado_liebre.product_service.repository.ProductRepository;
+import com.mercado_liebre.product_service.utils.ImageRender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,9 +23,10 @@ import java.util.stream.Collectors;
 public class ProductImageServiceImpl implements ProductImageService {
     @Autowired
     private ProductImageRepository productImageRepository;
-
     @Autowired
     private ProductRepository productRepository;
+
+    private ImageRender imageRender = new ImageRender();
 
     public List<ProductImageDTO> getAll() {
         try {
@@ -38,6 +40,20 @@ public class ProductImageServiceImpl implements ProductImageService {
             throw new ResponseException("Fail getAll", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public List<ProductImageDTO> getByIdProduct(Long idProduct) {
+        try {
+            List<ProductImage> productImages = productImageRepository.findImagesByIdProduct(idProduct);
+            List<ProductImageDTO> productImageDTOS = productImages.stream().map(
+                            productImage -> ProductImageMapper.mapper.productImageToProductImageDto(productImage))
+                    .collect(Collectors.toList());
+
+            return productImageDTOS;
+        } catch (Exception e) {
+            throw new ResponseException("Fail getAll", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public Optional<ProductImageDTO> getById(Long idProductImage) {
         try {
             Optional<ProductImage> productImageFound = productImageRepository.findById(idProductImage);
@@ -62,6 +78,9 @@ public class ProductImageServiceImpl implements ProductImageService {
             Long idProduct = productImage.getProduct().getIdProduct();
             Optional<Product> productFound = productRepository.findById(idProduct);
             if(productFound.isPresent()) {
+//                byte[] image = productImage.getImage();
+//                productImage.setImage(imageRender.removeBackground(image));
+
                 return productImageRepository.save(productImage);
             } else {
                 throw new ResponseException("That product does not exist", null, HttpStatus.BAD_REQUEST);

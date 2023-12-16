@@ -1,6 +1,7 @@
 package com.mercado_liebre.transaction_service.service;
 
 import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCart;
+import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCartCreateDTO;
 import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCartDTO;
 
 import java.util.List;

@@ -33,6 +33,7 @@ public class UserAddressServiceImpl implements UserAddressService {
             throw new ResponseException("Fail getAll", e.getMessage() ,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     public Optional<UserAddressDetailDTO> getById(Long idAddress) {
         try {
             Optional<UserAddress> userAddressFound = userAddressRepository.findById(idAddress);
@@ -50,6 +51,26 @@ public class UserAddressServiceImpl implements UserAddressService {
             throw new ResponseException("Error occurred while fetching user address", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    public List<UserAddressDetailDTO> getByUser(Long idUser) {
+        try {
+            Optional<User> userFounded = userRepository.findById(idUser);
+            if(userFounded.isPresent()) {
+                List<UserAddress> adresses = userAddressRepository.findByIdUser(idUser);
+                List<UserAddressDetailDTO> addressDetailDTOS = adresses.stream().map(
+                        userAddress -> UserAddressMapper.mapper.userAddressToUserAddressDetailDto(userAddress)).collect(Collectors.toList());
+
+                return addressDetailDTOS;
+            } else {
+                throw new ResponseException("User not founded", null, HttpStatus.NOT_FOUND);
+            }
+
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Error get by user", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     public UserAddressCreateDTO createUserAddress(UserAddressCreateDTO userAddressCreateDTO) {

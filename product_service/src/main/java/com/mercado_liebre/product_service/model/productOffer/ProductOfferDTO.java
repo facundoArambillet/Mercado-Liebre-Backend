@@ -1,6 +1,7 @@
 package com.mercado_liebre.product_service.model.productOffer;
 
 import com.mercado_liebre.product_service.model.product.Product;
+import com.mercado_liebre.product_service.model.product.ProductDTO;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -15,5 +16,5 @@ public class ProductOfferDTO {
     private Long idProductOffer;
     private double discountPercentage;
     private double total;
-    private Product product;
+    private ProductDTO product;
 }

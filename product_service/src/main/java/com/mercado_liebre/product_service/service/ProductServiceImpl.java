@@ -2,6 +2,8 @@ package com.mercado_liebre.product_service.service;
 
 import com.mercado_liebre.product_service.error.ResponseException;
 import com.mercado_liebre.product_service.model.category.Category;
+import com.mercado_liebre.product_service.model.categoryFamily.CategoryFamily;
+import com.mercado_liebre.product_service.model.categoryFamily.CategoryFamilyDTO;
 import com.mercado_liebre.product_service.model.paymentPlant.PaymentMapper;
 import com.mercado_liebre.product_service.model.paymentPlant.PaymentPlan;
 import com.mercado_liebre.product_service.model.paymentPlant.PaymentPlanDTO;
@@ -10,6 +12,7 @@ import com.mercado_liebre.product_service.model.productAttribute.ProductAttribut
 import com.mercado_liebre.product_service.model.user.User;
 import com.mercado_liebre.product_service.model.user.UserDetailDTO;
 import com.mercado_liebre.product_service.model.user.UserMapper;
+import com.mercado_liebre.product_service.repository.CategoryFamilyRepository;
 import com.mercado_liebre.product_service.repository.CategoryRepository;
 import com.mercado_liebre.product_service.repository.ProductAttributeRepository;
 import com.mercado_liebre.product_service.repository.ProductRepository;
@@ -18,13 +21,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-
+    @Autowired
+    private CategoryFamilyServiceImpl categoryFamilyService;
+    @Autowired
+    private CategoryFamilyRepository categoryFamilyRepository;
     @Autowired
     private CategoryRepository categoryRepository;
     @Autowired
@@ -44,6 +49,17 @@ public class ProductServiceImpl implements ProductService {
             return productDTOS;
         } catch (Exception e) {
             throw new ResponseException("Fail getAll", e.getMessage() ,HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDTO> getAllByCategoryName(String categoryName) {
+        try {
+            List<Product> products = productRepository.findByCategoryName(categoryName);
+            List<ProductDTO> productDTOS = products.stream().map(
+                    product -> ProductMapper.mapper.productToProductDto(product)).collect(Collectors.toList());
+
+            return productDTOS;
+        } catch (Exception e) {
+            throw new ResponseException("Fail get all by category name", e.getMessage() ,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     public Optional<ProductDetailDTO> getById(Long idProduct) {
@@ -79,10 +95,26 @@ public class ProductServiceImpl implements ProductService {
         } catch (ResponseException ex) {
             throw ex;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new ResponseException("Get By Name product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    public Optional<Product> getByNameEntity(String name) {
+        try {
+            Optional<Product> productFound = productRepository.findByName(name);
+            if(productFound.isPresent()) {
 
+                return productFound;
+            } else {
+                throw new ResponseException("Product not found", null, HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new ResponseException("Get By Name dto product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     public  Optional<ProductDTO> getByNameAndInsertIntoHistory(String name, Long idUser) {
         try {
             Optional<Product> productFound = productRepository.findByName(name);
@@ -110,7 +142,140 @@ public class ProductServiceImpl implements ProductService {
             throw new ResponseException("Get By Name product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    public List<ProductDTO> getProductsInOffer() {
+        try {
+            List<Product> products = productRepository.findProductsInOffer();
+            List<ProductDTO> productDTOS = products.stream().map(
+                    product -> ProductMapper.mapper.productToProductDto(product)).collect(Collectors.toList());
 
+            return productDTOS;
+        } catch (Exception e) {
+            throw new ResponseException("Get products in weekly offer product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDTO> getProductsInWeeklyOffer() {
+        try {
+            List<Product> products = productRepository.findProductsByWeeklyOffer();
+            List<ProductDTO> productDTOS = products.stream().map(
+                    product -> ProductMapper.mapper.productToProductDto(product)).collect(Collectors.toList());
+            return productDTOS;
+        } catch (Exception e) {
+            throw new ResponseException("Get products in weekly offer product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDetailDTO> getProductsByIdCategoryFamily(Long idCategoryFamily) {
+        try {
+            Optional<CategoryFamily> categoryFamilyFound = categoryFamilyRepository.findById(idCategoryFamily);
+            if (categoryFamilyFound.isPresent()) {
+                List<Product> products = productRepository.findByIdCategoryFamily(idCategoryFamily);
+                List<ProductDetailDTO> productDetailDTOS = products.stream().map(
+                        product -> ProductMapper.mapper.productToProductDetailDto(product)).collect(Collectors.toList());
+
+                return productDetailDTOS;
+            } else {
+                throw new ResponseException("Category family not found", null, HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get By id category family product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDTO> getProductsByTypeCategoryFamily(String categoryFamilyType) {
+        try {
+            Optional<CategoryFamily> categoryFamilyFound = categoryFamilyRepository.findByType(categoryFamilyType);
+            if (categoryFamilyFound.isPresent()) {
+                List<Product> products = productRepository.findByTypeCategoryFamily(categoryFamilyType);
+                List<ProductDTO> productDTOS = products.stream().map(
+                        product -> ProductMapper.mapper.productToProductDto(product)).collect(Collectors.toList());
+
+                return productDTOS;
+            } else {
+                throw new ResponseException("Category family not found", null, HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get By name category family product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDetailDTO> getLatestProductsInHistoryByIdUser(Long idUser) {
+        try {
+            Optional<UserDetailDTO> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser , UserDetailDTO.class));
+            if(userFound.isPresent()) {
+                User user = UserMapper.mapper.userDetailDtoToUser(userFound.get());
+                if(!user.getProducts().isEmpty()) {
+                   Product latestProductInUserHistory = user.getProducts().get(user.getProducts().size() - 1);
+                   CategoryFamily latestCategoryFamilyInUserHistory = latestProductInUserHistory.getCategory().getCategoryFamily();
+
+                   return this.getProductsByIdCategoryFamily(latestCategoryFamilyInUserHistory.getIdType());
+                }
+
+                return new ArrayList<>();
+            } else {
+                throw new ResponseException("User not found", null, HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get By id user product", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    private Product getLatestProductInHistoryUser(Long idUser) {
+        try {
+            Optional<UserDetailDTO> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser , UserDetailDTO.class));
+            if(userFound.isPresent()) {
+                User user = UserMapper.mapper.userDetailDtoToUser(userFound.get());
+                if(!user.getProducts().isEmpty()) {
+                    Product latestProductInUserHistory = user.getProducts().get(user.getProducts().size() - 1);
+                    return latestProductInUserHistory;
+                }
+
+            } else {
+                throw new ResponseException("User not found", null, HttpStatus.NOT_FOUND);
+            }
+            return null;
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get latest user product in history", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDetailDTO> getProductsByLatestCategoryInUserHistory(Long idUser) {
+        try {
+            Product latestProduct = this.getLatestProductInHistoryUser(idUser);
+            if(latestProduct != null) {
+                List<Product> productsByLatestCategory = productRepository.findByLatestCategoryInUserHistory(latestProduct.getCategory().getName());
+                List<ProductDetailDTO> productDetailDTOS = productsByLatestCategory.stream().map(
+                        product -> ProductMapper.mapper.productToProductDetailDto(product)).collect(Collectors.toList());
+                return productDetailDTOS;
+            } else {
+                return new ArrayList<>();
+            }
+
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get latest user product in history", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    public List<ProductDetailDTO> getProductsInShoppingCart(Long idCart) {
+        try {
+            Long[] idProducts = Objects.requireNonNull(restTemplate.getForObject("http://transaction-service/shopping-cart/by-product/" + idCart, Long[].class));
+            List<ProductDetailDTO> productDetailDTOS = new ArrayList<>();
+            for(Long idProduct : idProducts) {
+                Optional<Product> product = productRepository.findById(idProduct);
+                ProductDetailDTO productDetailDTO = ProductMapper.mapper.productToProductDetailDto(product.get());
+                productDetailDTOS.add(productDetailDTO);
+            }
+
+            return productDetailDTOS;
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get products user in shopping cart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     public ProductCreateDTO createProduct(ProductCreateDTO productCreateDTO) {
         try {
             //Buscar por nombre y Id de usuario para que pueda haber publicaciones con el mismo nombre de producto

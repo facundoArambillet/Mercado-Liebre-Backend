@@ -15,12 +15,16 @@ public class ProductOffer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_offer")
+    @Column(name = "id_offer", nullable = false)
     private Long idProductOffer;
-    @Column(name = "discount_percentage")
+    @Column(name = "discount_percentage", nullable = false)
     private double discountPercentage;
+    @Column(nullable = false)
     private double total;
+
     @OneToOne
-    @JoinColumn(name = "id_product")
+    @JoinColumn(name = "id_product" , nullable = false, foreignKey = @ForeignKey(name = "fk_product_offers_products",
+            foreignKeyDefinition = "FOREIGN KEY (id_product) REFERENCES products(id_product) ON DELETE CASCADE ON UPDATE CASCADE" )
+    )
     private Product product;
 }

@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -38,13 +40,13 @@ public class User {
     @Column(name = "sales_made", nullable = false)
     private Long salesMade;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<Invoice> invoices;
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="id_rol")
+    @ManyToOne
+    @JoinColumn(name = "id_rol", nullable = false, foreignKey = @ForeignKey(name = "fk_users_user_roles",
+            foreignKeyDefinition = "FOREIGN KEY (id_rol) REFERENCES user_roles(id_rol) ON DELETE CASCADE ON UPDATE CASCADE")
+    )
     private UserRol userRol;
-    @ManyToMany(mappedBy = "users", cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<Product> products;
+    @ManyToMany(mappedBy = "users" , cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Product> products = new ArrayList<>();
 
 }

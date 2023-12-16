@@ -81,6 +81,10 @@ public class CategoryServiceImpl implements CategoryService {
                 Long idCategoryFamily = category.getCategoryFamily().getIdType();
                 Optional<CategoryFamily> categoryFamilyFound = categoryFamilyRepository.findById(idCategoryFamily);
                 if(categoryFamilyFound.isPresent()) {
+
+                    //Tuve que hacer esto porque sino se me generaba este error:
+                    //"detached entity passed to persist: com.mercado_liebre.product_service.model.categoryFamily.CategoryFamily"
+//                    category.setCategoryFamily(categoryFamilyFound.get());
                     return categoryRepository.save(category);
                 } else {
                     throw new ResponseException("Category Family does not exist", null, HttpStatus.BAD_REQUEST);

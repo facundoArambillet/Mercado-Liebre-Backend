@@ -19,7 +19,9 @@ public class PaymentPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_payment")
     private Long idPayment;
+    @Column(nullable = false)
     private int installments;
+    @Column(nullable = false)
     private double interest;
 
 //    @ManyToMany(mappedBy = "paymentPlans")

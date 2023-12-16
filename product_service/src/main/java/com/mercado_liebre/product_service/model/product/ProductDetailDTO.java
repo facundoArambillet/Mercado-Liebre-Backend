@@ -22,7 +22,7 @@ public class ProductDetailDTO {
     private double price;
     private int stock;
     private String description;
-    private boolean isWeeklyOffer;
+    private boolean weeklyOffer;
     private CategoryDTO category;
     private UserDTO user;
     private List<ProductAttributeDTO> productAttributes;

@@ -15,11 +15,14 @@ public class ProductImageController {
     @Autowired
     private ProductImageServiceImpl productImageService;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<ProductImageDTO> getAll() {
         return productImageService.getAll();
     }
-
+    @GetMapping("/byProduct/{idProduct}")
+    public List<ProductImageDTO> getByIdProduct(@PathVariable("idProduct") Long idProduct) {
+        return productImageService.getByIdProduct(idProduct);
+    }
     @GetMapping("/{idProductImage}")
     public Optional<ProductImageDTO> getById(@PathVariable("idProductImage") Long idProductImage) {
         return productImageService.getById(idProductImage);

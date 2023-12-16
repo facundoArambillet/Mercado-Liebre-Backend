@@ -1,6 +1,10 @@
 package com.mercado_liebre.user_service.service;
 
 import com.mercado_liebre.user_service.error.ResponseException;
+import com.mercado_liebre.user_service.model.category.Category;
+import com.mercado_liebre.user_service.model.categoryFamily.CategoryFamily;
+import com.mercado_liebre.user_service.model.categoryFamily.CategoryFamilyDTO;
+import com.mercado_liebre.user_service.model.categoryFamily.CategoryFamilyMapper;
 import com.mercado_liebre.user_service.model.product.Product;
 import com.mercado_liebre.user_service.model.shoppingCart.ShoppingCart;
 import com.mercado_liebre.user_service.model.user.*;
@@ -74,6 +78,22 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    public Optional<User> getByIdUser(Long idUser) {
+        try {
+            Optional<User> userFound = userRepository.findById(idUser);
+            if (userFound.isPresent()) {
+
+                return userFound;
+            } else {
+                throw new ResponseException("User not found", null,  HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Error occurred while fetching user", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
     public  Optional<UserDetailDTO> getByEmail(String email) {
         try {
             Optional<User> userFound = userRepository.findByEmail(email);
@@ -91,6 +111,45 @@ public class UserServiceImpl implements UserService {
             throw new ResponseException("Get By Email user", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+//    public List<CategoryFamilyDTO> getLatestProductsByCategoryFamilyInHistoryById(Long idUser) {
+//        try {
+//            Optional<User> userFounded = userRepository.findById(idUser);
+//            if (userFounded.isPresent()) {
+//                List<Product> userProducts = this.getUserProductsById(idUser);
+//                if(!userProducts.isEmpty()) {
+////                    Category latestProductCategoryHistory = userProducts.get(userProducts.size() - 1).getCategory();
+////                    CategoryFamily latestCategoryFamilyHistory = latestProductCategoryHistory.getCategoryFamily();
+//                    CategoryFamilyDTO categoryFamilyDTO = restTemplate.getForObject("http://product-service/category-family/latest" + idUser , CategoryFamilyDTO.class);
+//                    List<CategoryFamilyDTO> arrayList = new ArrayList<>();
+//                    arrayList.add(categoryFamilyDTO);
+//                    return arrayList;
+//                }
+//
+//                return new ArrayList<>();
+//            } else {
+//                throw new ResponseException("User not found", null, HttpStatus.NOT_FOUND);
+//            }
+//        } catch (ResponseException ex) {
+//            throw ex;
+//        } catch (Exception e) {
+//            throw new ResponseException("Get By latest category family user", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+//    private List<Product> getUserProductsById(Long idUser) {
+//        try {
+//            Optional<User> userFounded = userRepository.findById(idUser);
+//            if(userFounded.isPresent()) {
+//                User user = userFounded.get();
+//                return user.getProducts();
+//            } else {
+//                throw new ResponseException("User not found", null, HttpStatus.NOT_FOUND);
+//            }
+//        } catch (ResponseException ex) {
+//            throw ex;
+//        } catch (Exception e) {
+//            throw new ResponseException("Get user products by id user", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     public boolean validateEmail(String email) {
         // Expresión regular para validar el formato del correo electrónico
@@ -130,13 +189,14 @@ public class UserServiceImpl implements UserService {
                         user.setPassword(passwordEncoder.encode(user.getPassword()));
                         ShoppingCart shoppingCart = new ShoppingCart();
                         List<Product> products = new ArrayList<>();
-                        shoppingCart.setPrice(0);
-                        shoppingCart.setUser(user);
-                        shoppingCart.setProducts(products);
 
                         user.setCreationDate(Date.valueOf(LocalDate.now()));
                         user.setSalesMade(0L);
                         user.setUserRol(userRolFound.get());
+
+                        shoppingCart.setPrice(0);
+                        shoppingCart.setUser(user);
+
                         userRepository.save(user);
                         restTemplate.postForObject("http://transaction-service/shopping-cart",shoppingCart, ShoppingCart.class);
 

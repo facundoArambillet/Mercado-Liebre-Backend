@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/user/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/user/{idUser}").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/user/by-user/{idUser}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/user/email/{userEmail}").permitAll()
                         .requestMatchers(HttpMethod.GET,"/user/email/validate/{userEmail}").permitAll()
                         .anyRequest().authenticated()

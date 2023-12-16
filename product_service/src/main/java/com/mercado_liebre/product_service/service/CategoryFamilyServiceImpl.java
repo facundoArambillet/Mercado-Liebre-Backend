@@ -1,15 +1,21 @@
 package com.mercado_liebre.product_service.service;
 
 import com.mercado_liebre.product_service.error.ResponseException;
+import com.mercado_liebre.product_service.model.category.Category;
 import com.mercado_liebre.product_service.model.categoryFamily.CategoryFamily;
 import com.mercado_liebre.product_service.model.categoryFamily.CategoryFamilyDTO;
 import com.mercado_liebre.product_service.model.categoryFamily.CategoryFamilyMapper;
+import com.mercado_liebre.product_service.model.product.Product;
+import com.mercado_liebre.product_service.model.user.User;
+import com.mercado_liebre.product_service.model.user.UserDetailDTO;
 import com.mercado_liebre.product_service.repository.CategoryFamilyRepository;
 import com.mercado_liebre.product_service.utils.ImageRender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +26,8 @@ public class CategoryFamilyServiceImpl implements CategoryFamilyService {
 
     @Autowired
     private CategoryFamilyRepository categoryFamilyRepository;
+    @Autowired
+    private RestTemplate restTemplate;
 
     private ImageRender imageRender = new ImageRender();
 
@@ -71,14 +79,52 @@ public class CategoryFamilyServiceImpl implements CategoryFamilyService {
         }
     }
 
+    public List<CategoryFamilyDTO> getPopularCategoryFamilies() {
+        try {
+            List<CategoryFamily> categoryFamilies = categoryFamilyRepository.findPopularCategoryFamilies();
+            List<CategoryFamilyDTO> categoryFamilyDTOS = categoryFamilies.stream().map(
+                    categoryFamily -> CategoryFamilyMapper.mapper.categoryFamilyToCategoryFamilyDto(categoryFamily)).collect(Collectors.toList());
+
+            return categoryFamilyDTOS;
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get popular categories categoryFamily", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+//    public List<CategoryFamilyDTO> getLatestCategoryFamilyByIdUser(Long idUser) {
+//        try {
+//            Optional<UserDetailDTO> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser , UserDetailDTO.class));
+//            if (userFound.isPresent()) {
+//                List<Product> userProducts = userFound.get().getProducts();
+//                if(!userProducts.isEmpty()) {
+//                    Category latestProductCategoryHistory = userProducts.get(userProducts.size() - 1).getCategory();
+//                    CategoryFamily latestCategoryFamilyHistory = latestProductCategoryHistory.getCategoryFamily();
+//                    CategoryFamilyDTO categoryFamilyDTO = CategoryFamilyMapper.mapper.categoryFamilyToCategoryFamilyDto(latestCategoryFamilyHistory);
+//                    List<CategoryFamilyDTO> arrayList = new ArrayList<>();
+//                    arrayList.add(categoryFamilyDTO);
+//                    return arrayList;
+//                }
+//
+//                return new ArrayList<>();
+//            } else {
+//                throw new ResponseException("User not found", null, HttpStatus.NOT_FOUND);
+//            }
+//        } catch (ResponseException ex) {
+//            throw ex;
+//        } catch (Exception e) {
+//            throw new ResponseException("Get By latest category family user", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     public CategoryFamily createCategoryFamily(CategoryFamily categoryFamily) {
         try {
             Optional<CategoryFamily> categoryFamilyFound = categoryFamilyRepository.findByType(categoryFamily.getType());
             if(categoryFamilyFound.isPresent()) {
                 throw new ResponseException("Category Family already exist", null, HttpStatus.BAD_REQUEST);
             } else {
-                byte[] image = categoryFamily.getImage();
-                categoryFamily.setImage(imageRender.removeBackground(image));
+//                byte[] image = categoryFamily.getImage();
+//                categoryFamily.setImage(imageRender.removeBackground(image));
 
                 return categoryFamilyRepository.save(categoryFamily);
             }

@@ -16,9 +16,11 @@ public class CategoryAttribute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_attribute")
     private Long idAttribute;
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name="id_category")
+    @JoinColumn(name="id_category", nullable = false,  foreignKey = @ForeignKey(name = "fk_category_attributes_categories",
+            foreignKeyDefinition = "FOREIGN KEY (id_category) REFERENCES categories(id_category) ON DELETE CASCADE ON UPDATE CASCADE"))
     private Category category;
 }

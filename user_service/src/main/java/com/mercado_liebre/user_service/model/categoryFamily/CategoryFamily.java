@@ -15,7 +15,10 @@ public class CategoryFamily {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_type")
     private Long idType;
+    @Column(nullable = false)
     private String type;
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGBLOB")
     private byte[] image;
 
 }

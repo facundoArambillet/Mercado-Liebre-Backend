@@ -55,12 +55,35 @@ public class ProductOfferServiceImpl implements ProductOfferService{
 
     }
 
+    public Optional<ProductOfferDTO> getByIdProduct(Long idProduct) {
+        try {
+            Optional<Product> productFounded = productRepository.findById(idProduct);
+            if(productFounded.isPresent()) {
+                Optional<ProductOffer> productOfferFounded = productOfferRepository.findByIdProduct(idProduct);
+                if(productOfferFounded.isPresent()) {
+                    ProductOffer productOffer = productOfferFounded.get();
+                    ProductOfferDTO productOfferDTO = ProductOfferMapper.mapper.productOfferToProductOfferDto(productOffer);
+
+                    return Optional.ofNullable(productOfferDTO);
+                } else {
+                    return null;
+                }
+            } else {
+                throw new ResponseException("Product not found", null,  HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Get By id product", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public ProductOffer createProductOffer(ProductOffer productOffer) {
         try {
             Long idProduct = productOffer.getProduct().getIdProduct();
             Optional<ProductOffer> productOfferFound = productOfferRepository.findByIdProduct(idProduct);
             if(productOfferFound.isPresent()) {
-                throw new ResponseException("Product Offert already exist", null, HttpStatus.BAD_REQUEST);
+                throw new ResponseException("Product Offer already exist", null, HttpStatus.BAD_REQUEST);
             } else {
                 Optional<Product> productFound = productRepository.findById(idProduct);
                 if(productFound.isPresent()) {
@@ -74,7 +97,7 @@ public class ProductOfferServiceImpl implements ProductOfferService{
         } catch (ResponseException ex) {
             throw ex;
         } catch (Exception e) {
-            throw new ResponseException("Create product offert", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseException("Create product offer", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }

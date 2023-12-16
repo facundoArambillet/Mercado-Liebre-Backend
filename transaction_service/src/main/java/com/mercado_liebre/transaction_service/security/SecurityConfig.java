@@ -25,7 +25,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.GET,"/shopping-cart/by-product/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/shopping-cart").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/shopping-cart/insert/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE,"/shopping-cart/remove/**").permitAll()
                         .anyRequest().authenticated()
 
                 )

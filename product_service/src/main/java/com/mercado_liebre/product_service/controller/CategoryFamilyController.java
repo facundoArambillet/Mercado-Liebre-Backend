@@ -27,6 +27,14 @@ public class CategoryFamilyController {
     public  Optional<CategoryFamilyDTO> getByType(@PathVariable("categoryFamilyType") String categoryFamilyType) {
         return categoryFamilyService.getByType(categoryFamilyType);
     }
+//    @GetMapping("/latest/{idUser}")
+//    public List<CategoryFamilyDTO> getLatestCategoryFamilyByIdUser(@PathVariable("idUser") Long idUser) {
+//        return categoryFamilyService.getLatestCategoryFamilyByIdUser(idUser);
+//    }
+    @GetMapping("/popular")
+    public List<CategoryFamilyDTO> getPopularCategoryFamilies() {
+        return categoryFamilyService.getPopularCategoryFamilies();
+    }
     @PostMapping
     public CategoryFamily createCategoryFamily(@RequestBody CategoryFamily categoryFamily) {
         return categoryFamilyService.createCategoryFamily(categoryFamily);

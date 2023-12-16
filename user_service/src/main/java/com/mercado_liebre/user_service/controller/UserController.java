@@ -18,7 +18,7 @@ public class UserController {
     @Autowired
     private UserServiceImpl userService;
     @Autowired
-    JwtProvider jwtProvider;
+    private JwtProvider jwtProvider;
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -30,10 +30,19 @@ public class UserController {
     public Optional<UserDetailDTO> getById(@PathVariable("idUser") Long idUser) {
         return userService.getById(idUser);
     }
+    @GetMapping("/by-user/{idUser}")
+    public Optional<User> getByIdUser(@PathVariable("idUser") Long idUser) {
+        return userService.getByIdUser(idUser);
+    }
     @GetMapping("/email/{userEmail}")
-    public  Optional<UserDetailDTO> getByEmail(@PathVariable("userEmail") String userEmail) {
+    public Optional<UserDetailDTO> getByEmail(@PathVariable("userEmail") String userEmail) {
         return userService.getByEmail(userEmail);
     }
+
+//    @GetMapping("/history/{idUser}")
+//    public List<CategoryFamilyDTO> getLatestCategoryFamilyInHistoryById (@PathVariable("idUser") Long idUser) {
+//        return userService.getLatestCategoryFamilyInHistoryById(idUser);
+//    }
     @GetMapping("/email/validate/{userEmail}")
     public boolean validateEmail(@PathVariable("userEmail") String userEmail) {
         return userService.validateEmail(userEmail);

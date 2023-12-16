@@ -45,14 +45,18 @@ public class Product {
     @JoinTable(
             name = "user_history",
             joinColumns = @JoinColumn(name = "id_product"),
-            inverseJoinColumns = @JoinColumn(name = "id_user")
+            inverseJoinColumns = @JoinColumn(name = "id_user"),
+            foreignKey = @ForeignKey(name = "fk_user_history_products", foreignKeyDefinition = "FOREIGN KEY (id_product) REFERENCES product(id_product) ON DELETE CASCADE ON UPDATE CASCADE"),
+            inverseForeignKey  = @ForeignKey(name = "fk_user_history_users", foreignKeyDefinition = "FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE CASCADE ON UPDATE CASCADE")
     )
     private Set<User> users;
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(
             name = "products_has_attributes",
             joinColumns = @JoinColumn(name = "id_product"),
-            inverseJoinColumns = @JoinColumn(name = "id_attribute")
+            inverseJoinColumns = @JoinColumn(name = "id_attribute"),
+            foreignKey = @ForeignKey(name = "fk_products_has_attributes_products", foreignKeyDefinition = "FOREIGN KEY (id_product) REFERENCES product(id_product) ON DELETE CASCADE ON UPDATE CASCADE"),
+            inverseForeignKey  = @ForeignKey(name = "fk_products_has_attributes_product_attributes", foreignKeyDefinition = "FOREIGN KEY (id_attribute) REFERENCES product_attributes(id_attribute) ON DELETE CASCADE ON UPDATE CASCADE")
     )
     private List<ProductAttribute> productAttributes;
     @ManyToMany(cascade = CascadeType.ALL)

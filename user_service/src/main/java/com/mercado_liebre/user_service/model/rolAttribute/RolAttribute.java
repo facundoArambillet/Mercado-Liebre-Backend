@@ -16,11 +16,15 @@ public class RolAttribute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_attribute")
     private Long idAttribute;
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     private String value;
 
     @ManyToOne
-    @JoinColumn(name = "id_rol")
+    @JoinColumn(name = "id_rol", nullable = false, foreignKey = @ForeignKey(name = "fk_rol_attributes_user_roles",
+            foreignKeyDefinition = "FOREIGN KEY (id_rol) REFERENCES user_roles(id_rol) ON DELETE CASCADE ON UPDATE CASCADE")
+    )
     private UserRol userRol;
 
 

@@ -1,6 +1,5 @@
 package com.mercado_liebre.user_service.controller;
 
-import com.mercado_liebre.user_service.model.userAddress.UserAddress;
 import com.mercado_liebre.user_service.model.userAddress.UserAddressCreateDTO;
 import com.mercado_liebre.user_service.model.userAddress.UserAddressDTO;
 import com.mercado_liebre.user_service.model.userAddress.UserAddressDetailDTO;
@@ -24,6 +23,10 @@ public class UserAddressController {
     @GetMapping("/{idAddress}")
     public Optional<UserAddressDetailDTO> getById(@PathVariable("idAddress") Long idAddress) {
         return userAddressService.getById(idAddress);
+    }
+    @GetMapping("/by-user/{idUser}")
+    public List<UserAddressDetailDTO> getByUser(@PathVariable("idUser") Long idUser) {
+        return userAddressService.getByUser(idUser);
     }
     @PostMapping
     public UserAddressCreateDTO createUserAddress(@RequestBody UserAddressCreateDTO userAddressCreateDTO) {

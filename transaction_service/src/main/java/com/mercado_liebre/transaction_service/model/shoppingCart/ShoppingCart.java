@@ -26,12 +26,14 @@ public class ShoppingCart {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "id_user")
     private User user;
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "shopping_cart_has_products",
-            joinColumns = @JoinColumn(name = "id_cart"),
-            inverseJoinColumns = @JoinColumn(name = "id_product")
-    )
-    private List<Product> products;
+//    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//    @JoinTable(
+//            name = "shopping_cart_has_products",
+//            joinColumns = @JoinColumn(name = "id_cart"),
+//            inverseJoinColumns = @JoinColumn(name = "id_product")
+//    )
+//    private List<Product> products;
+//    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//    private List<Product> products;
 
 }

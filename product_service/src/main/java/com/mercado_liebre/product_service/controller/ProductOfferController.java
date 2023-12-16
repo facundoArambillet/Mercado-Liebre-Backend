@@ -19,10 +19,13 @@ public class ProductOfferController {
     public List<ProductOfferDTO> getAll() {
         return productOfferService.getAll();
     }
-
     @GetMapping("/{idProductOffer}")
     public Optional<ProductOfferDTO> getById(@PathVariable("idProductOffer") Long idProductOffer) {
         return productOfferService.getById(idProductOffer);
+    }
+    @GetMapping("/byProduct/{idProduct}")
+    public Optional<ProductOfferDTO> getByIdProduct(@PathVariable("idProduct") Long idProduct) {
+        return productOfferService.getByIdProduct(idProduct);
     }
     @PostMapping
     public ProductOffer createProductOffer(@RequestBody ProductOffer productOffer) {

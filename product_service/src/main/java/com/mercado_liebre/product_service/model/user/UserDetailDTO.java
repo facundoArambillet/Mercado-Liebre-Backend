@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -20,5 +21,5 @@ public class UserDetailDTO {
     private Date creationDate;
     private Long salesMade;
     private UserRolDTO userRol;
-    private Set<Product> products;
+    private List<Product> products;
 }

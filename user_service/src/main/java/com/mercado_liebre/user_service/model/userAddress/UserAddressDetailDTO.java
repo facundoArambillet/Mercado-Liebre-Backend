@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,7 +21,7 @@ public class UserAddressDetailDTO {
     private String province;
     private String city;
     private int postalCode;
-    private int contactPhone;
+    private BigInteger contactPhone;
     private boolean isPrincipal;
     private UserDTO user;
 }

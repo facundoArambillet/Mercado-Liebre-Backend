@@ -1,5 +1,7 @@
 package com.mercado_liebre.product_service.controller;
 
+import com.mercado_liebre.product_service.model.categoryFamily.CategoryFamily;
+import com.mercado_liebre.product_service.model.product.Product;
 import com.mercado_liebre.product_service.model.product.ProductCreateDTO;
 import com.mercado_liebre.product_service.model.product.ProductDTO;
 import com.mercado_liebre.product_service.model.product.ProductDetailDTO;
@@ -19,9 +21,25 @@ public class ProductController {
     public List<ProductDTO> getAll() {
         return productService.getAll();
     }
+    @GetMapping("by-category-name/{categoryName}")
+    public List<ProductDTO> getAllByCategoryName(@PathVariable("categoryName") String categoryName) {
+        return productService.getAllByCategoryName(categoryName);
+    }
+    @GetMapping("/offers")
+    public List<ProductDTO> getProductsInOffer() {
+        return productService.getProductsInOffer();
+    }
+    @GetMapping("/latest-offers")
+    public List<ProductDTO> getProductsInWeeklyOffer(){
+        return productService.getProductsInWeeklyOffer();
+    }
     @GetMapping("/{idProduct}")
     public Optional<ProductDetailDTO> getById(@PathVariable("idProduct") Long idProduct) {
         return productService.getById(idProduct);
+    }
+    @GetMapping("/by-category-family/{categoryFamilyType}")
+    public List<ProductDTO> getProductsByTypeCategoryFamily(@PathVariable("categoryFamilyType") String categoryFamilyType) {
+        return productService.getProductsByTypeCategoryFamily(categoryFamilyType);
     }
     @GetMapping("/name/{productName}")
     public Optional<ProductDetailDTO> getByName(@PathVariable("productName") String  productName) {
@@ -30,6 +48,18 @@ public class ProductController {
     @GetMapping("/history/{productName}/{idUser}")
     public  Optional<ProductDTO> getByNameAndInsertIntoHistory(@PathVariable("productName") String productName, @PathVariable("idUser") Long idUser) {
         return productService.getByNameAndInsertIntoHistory(productName,idUser);
+    }
+    @GetMapping("/history/latest-category/{idUser}")
+    public List<ProductDetailDTO> getProductsByLatestCategoryInUserHistory(@PathVariable("idUser") Long idUser) {
+        return productService.getProductsByLatestCategoryInUserHistory(idUser);
+    }
+    @GetMapping("/history/latest/{idUser}")
+    public List<ProductDetailDTO> getLatestProductsInHistoryByIdUser(@PathVariable("idUser") Long idUser) {
+        return productService.getLatestProductsInHistoryByIdUser(idUser);
+    }
+    @GetMapping("/by-cart/{idCart}")
+    public List<ProductDetailDTO> getProductsInShoppingCart(@PathVariable("idCart") Long idCart) {
+        return productService.getProductsInShoppingCart(idCart);
     }
     @PostMapping
     public ProductCreateDTO createProduct(@RequestBody ProductCreateDTO productCreateDTO) {

@@ -7,16 +7,19 @@ import com.mercado_liebre.transaction_service.model.product.ProductMapper;
 import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCart;
 import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCartDTO;
 import com.mercado_liebre.transaction_service.model.shoppingCart.ShoppingCartMapper;
+import com.mercado_liebre.transaction_service.model.shoppingCartHasProduct.ShoppingCartHasProduct;
 import com.mercado_liebre.transaction_service.model.user.User;
 import com.mercado_liebre.transaction_service.model.user.UserDetailDTO;
-import com.mercado_liebre.transaction_service.model.user.UserMapper;
+import com.mercado_liebre.transaction_service.repository.ShoppingCartHasProductRepository;
 import com.mercado_liebre.transaction_service.repository.ShoppingCartRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,9 +29,13 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Autowired
     private ShoppingCartRepository shoppingCartRepository;
+    @Autowired
+    private ShoppingCartHasProductRepository shoppingCartHasProductRepository;
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private EntityManager entityManager;
 
     public List<ShoppingCartDTO> getAll() {
         try {
@@ -77,15 +84,37 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
     }
 
-    private double calculatePrice(ShoppingCart shoppingCart) {
+    public List<Long> getIdProductByCart(Long idCart) {
+        try {
+            Optional<ShoppingCart> shoppingCartFounded = shoppingCartRepository.findById(idCart);
+            if(shoppingCartFounded.isPresent()) {
+                List<Long> idProducts = new ArrayList<>();
+                List<ShoppingCartHasProduct> shoppingCartHasProducts = shoppingCartHasProductRepository.findByCart(idCart);
+                for(ShoppingCartHasProduct shoppingCartHasProduct : shoppingCartHasProducts) {
+                    idProducts.add(shoppingCartHasProduct.getProduct().getIdProduct());
+                }
+                return idProducts;
+            } else {
+                throw new ResponseException("ShoppingCart not found", null,  HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("get by user", e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    private double calculatePrice(Long idCart) {
+        List<ShoppingCartHasProduct> shoppingCartHasProducts = shoppingCartHasProductRepository.findByCart(idCart);
 
         double price = 0;
-        for(Product product : shoppingCart.getProducts()) {
-            price += product.getPrice();
+        for(ShoppingCartHasProduct shoppingCartHasProduct : shoppingCartHasProducts) {
+            Long idProduct = shoppingCartHasProduct.getProduct().getIdProduct();
+            Optional<ProductDetailDTO> productDetailDTO = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/" + idProduct, ProductDetailDTO.class));
+            price += productDetailDTO.get().getPrice();
         }
         return price;
     }
-
+    @Transactional
     public ShoppingCart createShoppingCart(ShoppingCart shoppingCart) {
         try {
             Long idUser = shoppingCart.getUser().getIdUser();
@@ -93,17 +122,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             if(ShoppingCartFound.isPresent()) {
                 throw new ResponseException("Shopping cart already exist", null, HttpStatus.BAD_REQUEST);
             } else {
-                Optional<User> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser, User.class));
+                Optional<UserDetailDTO> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser, UserDetailDTO.class));
                 if (userFound.isPresent()) {
-                    shoppingCart.setPrice(calculatePrice(shoppingCart));
+                    User userManaged = entityManager.merge(shoppingCart.getUser());
+//                    shoppingCart.setPrice(calculatePrice(shoppingCart.getIdCart()));
                     //Tuve que hacer esto porque sino se me generaba este error:
                     //"detached entity passed to persist"
-
+                    shoppingCart.setUser(userManaged);
                     return shoppingCartRepository.save(shoppingCart);
                 } else {
                     throw new ResponseException("User does not exist", null , HttpStatus.BAD_REQUEST);
                 }
-
             }
         } catch (ResponseException ex) {
             throw ex;
@@ -138,56 +167,50 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 //        }
 //
 //    }
-    @Transactional
-    public ShoppingCartDTO insertProduct(Long idUser, ProductDetailDTO productDetailDTO) {
-        try {
-            Optional<UserDetailDTO> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser, UserDetailDTO.class));
-            if (userFound.isPresent()) {
-                String productName = productDetailDTO.getName();
-                Optional<ProductDetailDTO> productFound = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/name/" + productName, ProductDetailDTO.class));
-                if (productFound.isPresent()) {
-                    if(productDetailDTO.getStock() >= 1) {
-                        Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findByIdUser(idUser);
-                        if(shoppingCartFound.isPresent()) {
-                            ShoppingCart shoppingCart = shoppingCartFound.get();
-                            Product productInsert = ProductMapper.mapper.productDetailDtoToProduct(productFound.get());
-//                            User user = shoppingCart.getUser();
-//                            System.out.println(user);
-////                            System.out.println(user.getCreationDate());
-//                            shoppingCart.setUser(user);
-                            shoppingCart.getProducts().add(productInsert);
-                            shoppingCart.setPrice(calculatePrice(shoppingCart));
-                            shoppingCartRepository.save(shoppingCart);
-
-                            ShoppingCartDTO shoppingCartDTO = ShoppingCartMapper.mapper.shoppingCartToShoppingCartDto(shoppingCart);
-                            return shoppingCartDTO;
-                        } else {
-                            throw new ResponseException("Shopping cart not found", null , HttpStatus.NOT_FOUND);
-                        }
-
-                    } else {
-                        throw new ResponseException("Insufficient stock", null , HttpStatus.BAD_REQUEST);
-                    }
-                } else {
-                    throw new ResponseException("Product does not exist", null , HttpStatus.BAD_REQUEST);
-                }
-
-            } else {
-                throw new ResponseException("User does not exist", null , HttpStatus.BAD_REQUEST);
-            }
-
-        } catch (ResponseException ex) {
-            throw ex;
-        } catch (Exception e) {
-            throw new ResponseException("Insert product ShoppingCart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-//    public ShoppingCartDTO insertProduct(Long idUser, Long idProduct) {
+//    @Transactional
+//    public ShoppingCartDTO insertProduct(Long idCart, ProductDetailDTO productDetailDTO) {
 //        try {
-//            Optional<User> userFounded = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/by-user/" + idUser, User.class));
-//            if(userFounded.isPresent()) {
-//               Optional<ProductDetailDTO> productFound = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/" + idProduct, ProductDetailDTO.class));
-//               if(productFound.isPresent()) {
+//            String productName = productDetailDTO.getName();
+//            Optional<ProductDetailDTO> productFound = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/name/" + productName, ProductDetailDTO.class));
+//            if (productFound.isPresent()) {
+//                if(productDetailDTO.getStock() >= 1) {
+//                    Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findById(idCart);
+//                    if(shoppingCartFound.isPresent()) {
+//                        ShoppingCart shoppingCart = shoppingCartFound.get();
+//                        Product productInsert = ProductMapper.mapper.productDetailDtoToProduct(productFound.get());
+////                            User user = shoppingCart.getUser();
+//////                            System.out.println(user.getCreationDate());
+////                            shoppingCart.setUser(user);
+//                        System.out.println(shoppingCart.getUser());
+//                        System.out.println(shoppingCart.getUser().getCreationDate());
+//                        shoppingCart.getProducts().add(productInsert);
+//                        shoppingCart.setPrice(calculatePrice(shoppingCart));
+//                        shoppingCartRepository.save(shoppingCart);
+//
+//                        ShoppingCartDTO shoppingCartDTO = ShoppingCartMapper.mapper.shoppingCartToShoppingCartDto(shoppingCart);
+//                        return shoppingCartDTO;
+//                    } else {
+//                        throw new ResponseException("Shopping cart not found", null , HttpStatus.NOT_FOUND);
+//                    }
+//
+//                } else {
+//                    throw new ResponseException("Insufficient stock", null , HttpStatus.BAD_REQUEST);
+//                }
+//            } else {
+//                throw new ResponseException("Product does not exist", null , HttpStatus.BAD_REQUEST);
+//            }
+//        } catch (ResponseException ex) {
+//            throw ex;
+//        } catch (Exception e) {
+//            throw new ResponseException("Insert product ShoppingCart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+    public ShoppingCartDTO insertProduct(Long idCart, Long idProduct) {
+        try {
+            Optional<ShoppingCart> cartFounded = shoppingCartRepository.findById(idCart);
+            if(cartFounded.isPresent()) {
+               Optional<ProductDetailDTO> productFound = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/" + idProduct, ProductDetailDTO.class));
+               if(productFound.isPresent()) {
 //                   Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findByIdUser(idUser);
 //                   ShoppingCart shoppingCart = shoppingCartFound.get();
 //                   Product product = ProductMapper.mapper.productDetailDtoToProduct(productFound.get());
@@ -196,52 +219,60 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 //                   shoppingCart.setUser(userFounded.get());
 //                   shoppingCart.setProducts(products);
 //                   shoppingCart.setPrice(calculatePrice(shoppingCart));
-//
-//                   shoppingCartRepository.save(shoppingCart);
-//                   ShoppingCartDTO shoppingCartDTO = ShoppingCartMapper.mapper.shoppingCartToShoppingCartDto(shoppingCart);
-//
-//                   return shoppingCartDTO;
-//               } else {
-//                   throw new ResponseException("Product not foun", null , HttpStatus.NOT_FOUND);
-//               }
-//            } else {
-//                throw new ResponseException("User not found", null , HttpStatus.NOT_FOUND);
-//            }
-//        } catch (ResponseException ex) {
-//            throw ex;
-//        } catch (Exception e) {
-//            throw new ResponseException("Insert product ShoppingCart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+                   Product product = ProductMapper.mapper.productDetailDtoToProduct(productFound.get());
+                   Optional<ShoppingCartHasProduct> shoppingCartHasProductFound =
+                           shoppingCartHasProductRepository.findByCartAndProduct(idCart,idProduct);
+                   if(shoppingCartHasProductFound.isPresent()) {
+                       throw new ResponseException("The product already exist in the cart", null , HttpStatus.BAD_REQUEST);
+                   } else {
+                       ShoppingCartHasProduct shoppingCartHasProduct = new ShoppingCartHasProduct();
+                       shoppingCartHasProduct.setShoppingCart(cartFounded.get());
+                       shoppingCartHasProduct.setProduct(product);
+                       shoppingCartHasProductRepository.save(shoppingCartHasProduct);
+                       ShoppingCartDTO shoppingCartDTO = ShoppingCartMapper.mapper.shoppingCartToShoppingCartDto(cartFounded.get());
+                       return shoppingCartDTO;
+                   }
 
-    public ShoppingCartDTO removeProduct(ProductDetailDTO productDetailDTO, Long idUser) {
-        try {
-            Optional<UserDetailDTO> userFound = Optional.ofNullable(restTemplate.getForObject("http://user-service/user/" + idUser, UserDetailDTO.class));
-            if(userFound.isPresent()) {
-                String productName = productDetailDTO.getName();
-                Optional<ProductDetailDTO> productFound = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/name/" + productName, ProductDetailDTO.class));
-                if(productFound.isPresent()) {
-                    Optional<ShoppingCart> shoppingCartFound = shoppingCartRepository.findByIdUser(idUser);
-                    ShoppingCart shoppingCart = shoppingCartFound.get();
-                    ShoppingCartDTO shoppingCartDTO = ShoppingCartMapper.mapper.shoppingCartToShoppingCartDto(shoppingCart);
-                    ProductDetailDTO productRemoved = productFound.get();
-                    shoppingCartDTO.getProducts().remove(productRemoved);
-
-                    ShoppingCart shoppingCartMapped = ShoppingCartMapper.mapper.shoppingCartDtoToShoppingCart(shoppingCartDTO);
-                    shoppingCartMapped.setPrice(calculatePrice(shoppingCartMapped));
-
-                    shoppingCartRepository.save(shoppingCartMapped);
-                    return shoppingCartDTO;
-                } else {
-                    throw new ResponseException("Product does not exist", null , HttpStatus.BAD_REQUEST);
-                }
+               } else {
+                   throw new ResponseException("Product not found", null , HttpStatus.NOT_FOUND);
+               }
             } else {
-                throw new ResponseException("User does not exist", null , HttpStatus.BAD_REQUEST);
+                throw new ResponseException("Shopping cart not found", null , HttpStatus.NOT_FOUND);
             }
         } catch (ResponseException ex) {
             throw ex;
         } catch (Exception e) {
-            throw new ResponseException("Delete product ShoppingCart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseException("Insert product ShoppingCart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ShoppingCartDTO removeProduct(Long idCart, Long idProduct) {
+        try {
+            Optional<ShoppingCart> cartFounded = shoppingCartRepository.findById(idCart);
+            if(cartFounded.isPresent()) {
+                Optional<ProductDetailDTO> productFound = Optional.ofNullable(restTemplate.getForObject("http://product-service/product/" + idProduct, ProductDetailDTO.class));
+                if(productFound.isPresent()) {
+                    Optional<ShoppingCartHasProduct> shoppingCartHasProductFound =
+                            shoppingCartHasProductRepository.findByCartAndProduct(idCart,idProduct);
+                    if(shoppingCartHasProductFound.isPresent()) {
+                        ShoppingCartHasProduct shoppingCartHasProduct = shoppingCartHasProductFound.get();
+                        shoppingCartHasProductRepository.delete(shoppingCartHasProduct);
+                        ShoppingCartDTO shoppingCartDTO = ShoppingCartMapper.mapper.shoppingCartToShoppingCartDto(cartFounded.get());
+                        return shoppingCartDTO;
+                    } else {
+                        throw new ResponseException("The product not found in the cart", null , HttpStatus.BAD_REQUEST);
+                    }
+
+                } else {
+                    throw new ResponseException("Product not found", null , HttpStatus.NOT_FOUND);
+                }
+            } else {
+                throw new ResponseException("Shopping cart not found", null , HttpStatus.NOT_FOUND);
+            }
+        } catch (ResponseException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new ResponseException("Insert product ShoppingCart", e.getMessage() , HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

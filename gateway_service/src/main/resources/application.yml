@@ -95,6 +95,11 @@ spring:
         - id: product-service
           uri: lb://product-service
           predicates:
+            - Path=/product-image/**
+
+        - id: product-service
+          uri: lb://product-service
+          predicates:
             - Path=/product/**
 
         - id: transaction-service

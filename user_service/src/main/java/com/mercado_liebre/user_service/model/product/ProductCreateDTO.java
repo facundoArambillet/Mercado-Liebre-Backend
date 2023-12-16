@@ -15,7 +15,7 @@ public class ProductCreateDTO {
     private double price;
     private int stock;
     private String description;
-    private boolean isWeeklyOffer;
+    private boolean weeklyOffer;
     private CategoryDTO category;
     private UserDTO user;
 
